@@ -75,33 +75,66 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,  _______,  _______,                                _______,                                _______,  _______,    _______,  _______,  _______,  _______),
 };
 
+
+uint8_t current_default_layer(void) {
+    switch (default_layer_state) {
+        case 1 << MAC_BASE:
+            return MAC_BASE;
+            break;
+        case 1 << WIN_BASE:
+            return WIN_BASE;
+            break;
+        default:
+            return -1;
+            break;
+    }
+}
+
+void set_default_switch_color(uint8_t i, int cur_default_layer) {
+    switch (cur_default_layer) {
+        case MAC_BASE:
+            rgb_matrix_set_color(i, RGB_GREEN);
+        break;
+        case WIN_BASE:
+            rgb_matrix_set_color(i, RGB_BLUE);
+        break;
+        default:
+            rgb_matrix_set_color(i, RGB_RED);
+        break;
+    }
+}
+
 #include "print.h"
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    uint8_t cur_default_layer = current_default_layer();
+    for (uint8_t i = led_min; i < led_max; i++) {
+        if (i == CAPS_LOCK_LED_INDEX) {
+            if (host_keyboard_led_state().caps_lock) {
+                rgb_matrix_set_color(i, RGB_RED);
+                continue;
+            }
+        }
+
+        set_default_switch_color(i, cur_default_layer);
+
+    }
     return false;
 }
 
-void set_matrix_hsv_default_layer(layer_state_t state) {
-    switch (state) {
-        case 1 << MAC_BASE:
+void keyboard_post_init_user() {
+    rgb_matrix_mode(RGB_MATRIX_SOLID_COLOR);
+    uint8_t cur_default_layer = current_default_layer();
+    switch (cur_default_layer) {
+        case MAC_BASE:
             rgb_matrix_sethsv(HSV_BLUE);
             break;
-        case 1 << WIN_BASE:
+        case WIN_BASE:
             rgb_matrix_sethsv(HSV_GREEN);
             break;
         default:
             rgb_matrix_sethsv(HSV_RED);
             break;
     }
-}
-
-layer_state_t default_layer_state_set_user(layer_state_t state) {
-    set_matrix_hsv_default_layer(state);
-    return state;
-}
-
-void keyboard_post_init_user() {
-    rgb_matrix_mode(RGB_MATRIX_SOLID_COLOR);
-    set_matrix_hsv_default_layer(default_layer_state);
 }
 
 #if defined(ENCODER_MAP_ENABLE)
