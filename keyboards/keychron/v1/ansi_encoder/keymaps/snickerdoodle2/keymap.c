@@ -104,13 +104,22 @@ uint8_t current_mod_layer(void) {
     }
 }
 
+#define MAC_BASE_COLOR 110, 18, 48
+#define WIN_BASE_COLOR 110, 99, 18
+
+#define CAPS_ON_LAYER_COLOR RGB_RED
+#define CAPS_COLOR RGB_GREEN
+#define CAPS_LAYER_COLOR RGB_YELLOW
+
+#define HIGHLIGHT_COLOR RGB_WHITE
+
 void set_default_key_color(uint8_t i, int cur_default_layer) {
     switch (cur_default_layer) {
         case MAC_BASE:
-            rgb_matrix_set_color(i, RGB_GREEN);
+            rgb_matrix_set_color(i, MAC_BASE_COLOR);
         break;
         case WIN_BASE:
-            rgb_matrix_set_color(i, RGB_BLUE);
+            rgb_matrix_set_color(i, WIN_BASE_COLOR);
         break;
         default:
             rgb_matrix_set_color(i, RGB_RED);
@@ -123,13 +132,13 @@ bool set_caps_lock_color(uint8_t i) {
     uint8_t caps_layer_active = (layer_state & (1 << CAPS)) > 0 ? 1 : 0;
     switch ((caps_active << 1) | caps_layer_active) {
         case 3: // both true
-            rgb_matrix_set_color(i, RGB_ORANGE);
+            rgb_matrix_set_color(i, CAPS_ON_LAYER_COLOR);
             return true;
         case 2: // caps_active
-            rgb_matrix_set_color(i, RGB_PINK);
+            rgb_matrix_set_color(i, CAPS_COLOR);
             return true;
         case 1: // caps_layer_active
-            rgb_matrix_set_color(i, RGB_RED);
+            rgb_matrix_set_color(i, CAPS_LAYER_COLOR);
             return true;
         case 0: // both false
             return false;
@@ -147,7 +156,7 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
             if (index >= led_min && index < led_max && index != NO_LED) {
                 if (keymap_key_to_keycode(mod_layer, (keypos_t){col,row}) > KC_TRNS) {
-                    rgb_matrix_set_color(index, RGB_GREEN);
+                    rgb_matrix_set_color(index, HIGHLIGHT_COLOR);
                     continue;
                 }
                 if (index == CAPS_LOCK_LED_INDEX && set_caps_lock_color(index)) {
@@ -162,18 +171,6 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
 void keyboard_post_init_user() {
     rgb_matrix_mode(RGB_MATRIX_SOLID_COLOR);
-    uint8_t cur_default_layer = current_default_layer();
-    switch (cur_default_layer) {
-        case MAC_BASE:
-            rgb_matrix_sethsv(HSV_BLUE);
-            break;
-        case WIN_BASE:
-            rgb_matrix_sethsv(HSV_GREEN);
-            break;
-        default:
-            rgb_matrix_sethsv(HSV_RED);
-            break;
-    }
 }
 
 #if defined(ENCODER_MAP_ENABLE)
