@@ -77,8 +77,31 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #include "print.h"
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    uprintf("Current layer: %d\n", get_highest_layer(layer_state|default_layer_state));
     return false;
+}
+
+void set_matrix_hsv_default_layer(layer_state_t state) {
+    switch (state) {
+        case 1 << MAC_BASE:
+            rgb_matrix_sethsv(HSV_BLUE);
+            break;
+        case 1 << WIN_BASE:
+            rgb_matrix_sethsv(HSV_GREEN);
+            break;
+        default:
+            rgb_matrix_sethsv(HSV_RED);
+            break;
+    }
+}
+
+layer_state_t default_layer_state_set_user(layer_state_t state) {
+    set_matrix_hsv_default_layer(state);
+    return state;
+}
+
+void keyboard_post_init_user() {
+    rgb_matrix_mode(RGB_MATRIX_SOLID_COLOR);
+    set_matrix_hsv_default_layer(default_layer_state);
 }
 
 #if defined(ENCODER_MAP_ENABLE)
