@@ -21,7 +21,7 @@
         "extrakey": true,
         "nkro": true,
         "encoder": true,
-        "dip_switch": true,
+        "dip_switch": false,
         "rgb_matrix": true
     },
     "layouts": {
