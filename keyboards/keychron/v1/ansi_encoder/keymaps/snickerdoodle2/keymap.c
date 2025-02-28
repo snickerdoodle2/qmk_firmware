@@ -104,7 +104,7 @@ uint8_t current_mod_layer(void) {
     }
 }
 
-void set_default_switch_color(uint8_t i, int cur_default_layer) {
+void set_default_key_color(uint8_t i, int cur_default_layer) {
     switch (cur_default_layer) {
         case MAC_BASE:
             rgb_matrix_set_color(i, RGB_GREEN);
@@ -116,6 +116,25 @@ void set_default_switch_color(uint8_t i, int cur_default_layer) {
             rgb_matrix_set_color(i, RGB_RED);
         break;
     }
+}
+
+bool set_caps_lock_color(uint8_t i) {
+    uint8_t caps_active = host_keyboard_led_state().caps_lock ? 1 : 0;
+    uint8_t caps_layer_active = (layer_state & (1 << CAPS)) > 0 ? 1 : 0;
+    switch ((caps_active << 1) | caps_layer_active) {
+        case 3: // both true
+            rgb_matrix_set_color(i, RGB_ORANGE);
+            return true;
+        case 2: // caps_active
+            rgb_matrix_set_color(i, RGB_PINK);
+            return true;
+        case 1: // caps_layer_active
+            rgb_matrix_set_color(i, RGB_RED);
+            return true;
+        case 0: // both false
+            return false;
+    }
+    return false;
 }
 
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
@@ -131,13 +150,10 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
                     rgb_matrix_set_color(index, RGB_GREEN);
                     continue;
                 }
-                if (index == CAPS_LOCK_LED_INDEX) {
-                    if (host_keyboard_led_state().caps_lock) {
-                        rgb_matrix_set_color(index, RGB_RED);
-                        continue;
-                    }
+                if (index == CAPS_LOCK_LED_INDEX && set_caps_lock_color(index)) {
+                    continue;
                 }
-                set_default_switch_color(index, default_layer);
+                set_default_key_color(index, default_layer);
             }
         }
     }
