@@ -90,6 +90,20 @@ uint8_t current_default_layer(void) {
     }
 }
 
+uint8_t current_mod_layer(void) {
+    switch (layer_state & (8 | 2)) {
+        case 1 << MAC_FN:
+            return MAC_FN;
+            break;
+        case 1 << WIN_FN:
+            return WIN_FN;
+            break;
+        default:
+            return -1;
+            break;
+    }
+}
+
 void set_default_switch_color(uint8_t i, int cur_default_layer) {
     switch (cur_default_layer) {
         case MAC_BASE:
@@ -104,19 +118,28 @@ void set_default_switch_color(uint8_t i, int cur_default_layer) {
     }
 }
 
-#include "print.h"
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    uint8_t cur_default_layer = current_default_layer();
-    for (uint8_t i = led_min; i < led_max; i++) {
-        if (i == CAPS_LOCK_LED_INDEX) {
-            if (host_keyboard_led_state().caps_lock) {
-                rgb_matrix_set_color(i, RGB_RED);
-                continue;
+    uint8_t default_layer = current_default_layer();
+    uint8_t mod_layer = current_mod_layer();
+
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+            uint8_t index = g_led_config.matrix_co[row][col];
+
+            if (index >= led_min && index < led_max && index != NO_LED) {
+                if (keymap_key_to_keycode(mod_layer, (keypos_t){col,row}) > KC_TRNS) {
+                    rgb_matrix_set_color(index, RGB_GREEN);
+                    continue;
+                }
+                if (index == CAPS_LOCK_LED_INDEX) {
+                    if (host_keyboard_led_state().caps_lock) {
+                        rgb_matrix_set_color(index, RGB_RED);
+                        continue;
+                    }
+                }
+                set_default_switch_color(index, default_layer);
             }
         }
-
-        set_default_switch_color(i, cur_default_layer);
-
     }
     return false;
 }
